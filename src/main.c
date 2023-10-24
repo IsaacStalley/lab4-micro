@@ -1,44 +1,64 @@
+#include <stdio.h>
+#include <stdint.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/systick.h>
-#include <stdint.h>
 #include "clock.h"
 #include "sdram.h"
 #include "lcd-spi.h"
 #include "gfx.h"
+#include "spi-mems.h"
 
-/*
- * This is our example, the heavy lifing is actually in lcd-spi.c but
- * this drives that code.
- */
-int main(void)
+int16_t twosCompToDec(uint16_t val)
 {
+    return -((~val + 1) & 0xFFFF);
+}
+
+
+int main(void)
+{   
+    int16_t vecs[3];
+	int16_t tmp, status;
+    char tmp_str[50];
+    char x_str[50];
+    char y_str[50];
+    char z_str[50];
+
 	clock_setup();
 	sdram_init();
 	lcd_spi_init();
+    mems_init();
 
-	msleep(2000);
+	gfx_init(lcd_draw_pixel, LCD_WIDTH, LCD_HEIGHT);
 
-	gfx_init(lcd_draw_pixel, 240, 320);
-	gfx_fillScreen(LCD_GREY);
-	gfx_fillRoundRect(10, 10, 220, 220, 5, LCD_WHITE);
-	gfx_drawRoundRect(10, 10, 220, 220, 5, LCD_RED);
-	gfx_fillCircle(20, 250, 10, LCD_RED);
-	gfx_fillCircle(120, 250, 10, LCD_GREEN);
-	gfx_fillCircle(220, 250, 10, LCD_BLUE);
-	gfx_setTextSize(2);
-	gfx_setCursor(15, 25);
-	gfx_puts("STM32F4-DISCO");
-	gfx_setTextSize(1);
-	gfx_setCursor(15, 49);
-	gfx_puts("Simple example to put some");
-	gfx_setCursor(15, 60);
-	gfx_puts("stuff on the LCD screen.");
-	lcd_show_frame();
+    while (1)
+    {
+        tmp = (int) read_reg(0x26);
+        tmp = twosCompToDec(tmp);
+        status = read_xyz(vecs);
+        vecs[0] = twosCompToDec(vecs[0]) / SSF_2000;
+        vecs[1] = twosCompToDec(vecs[1]) / SSF_2000;
+        vecs[2] = twosCompToDec(vecs[2]) / SSF_2000;
 
-	msleep(2000);
-/*	(void) console_getc(1); */
-	gfx_setTextColor(LCD_YELLOW, LCD_BLACK);
-	gfx_setTextSize(3);
+        sprintf(tmp_str, "Temp: %d", tmp);
+        sprintf(x_str, "X: %d", vecs[0]);
+        sprintf(y_str, "Y: %d", vecs[1]);
+        sprintf(z_str, "Z: %d", vecs[2]);
+
+        gfx_fillScreen(LCD_GREY);
+        gfx_setTextSize(2);
+        gfx_setCursor(15, 25);
+        gfx_puts(tmp_str);
+        gfx_setCursor(15, 45);
+        gfx_puts(x_str);
+        gfx_setCursor(15, 65);
+        gfx_puts(y_str);
+        gfx_setCursor(15, 85);
+        gfx_puts(z_str);
+        lcd_show_frame();
+
+        msleep(1000);
+    }
+    
 }
