@@ -17,15 +17,8 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LCD_SPI_H
-#define LCD_SPI_H
-
-/*
- * prototypes for the LCD example
- *
- * This is a very basic API, initialize, a function which will show the
- * frame, and a function which will draw a pixel in the framebuffer.
- */
+#ifndef _LCD_SPI_H
+#define _LCD_SPI_H
 
 void lcd_spi_init(void);
 void lcd_show_frame(void);
