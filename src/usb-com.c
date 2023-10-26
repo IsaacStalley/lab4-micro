@@ -224,6 +224,19 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 				cdcacm_control_request);
 }
 
+void send_data_to_host(usbd_device *usbd_dev, const char *data, int len) {
+    while (len > 0) {
+        int chunk_size = len > 64 ? 64 : len; // Send in chunks of 64 bytes or less
+        int sent = usbd_ep_write_packet(usbd_dev, 0x82, data, chunk_size);
+        if (sent < 0) {
+            // Error handling (e.g., return or retry)
+            return;
+        }
+        len -= sent;
+        data += sent;
+    }
+}
+
 usbd_device *usb_setup(void)
 {
 	usbd_device *usbd_dev;
