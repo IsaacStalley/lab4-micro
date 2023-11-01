@@ -8,7 +8,8 @@
 
 void adc_setup(void)
 {
-	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
+	rcc_periph_clock_enable(RCC_GPIOB);
+	gpio_mode_setup(GPIOB, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 	rcc_periph_clock_enable(RCC_ADC1);
 
 	adc_power_off(ADC1);
@@ -27,5 +28,5 @@ uint16_t read_adc_naiive(void)
 	adc_start_conversion_regular(ADC1);
 	while (!adc_eoc(ADC1));
 	uint16_t reg16 = adc_read_regular(ADC1);
-	return reg16 * VREF / ADC_RES;
+	return reg16 * VREF * 3 / ADC_RES;
 }

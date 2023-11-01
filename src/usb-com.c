@@ -255,3 +255,11 @@ usbd_device *usb_setup(void)
 
 	return usbd_dev;
 }
+
+void usb_disconnect(usbd_device *usbd_dev)
+{
+	if (usbd_dev != NULL)
+	{
+		(void) usbd_disconnect(usbd_dev, true);
+	}
+}
